@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Down</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh;background:#FAF7F0;font-family:'Lora','Georgia','Times New Roman',serif;-webkit-font-smoothing:antialiased;overflow-x:auto}
+::selection{background:rgba(120,100,80,0.1)}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:rgba(120,100,80,0.1);border-radius:2px}
+
+.scene{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:2rem;opacity:0;transition:opacity 0.8s ease;position:absolute;top:0;left:0;right:0;pointer-events:none
+}
+.scene.active{opacity:1;pointer-events:all;position:relative}
+
+.body-text{font-size:1.05rem;line-height:1.8;color:rgba(60,50,40,0.75);text-align:center;font-weight:400;white-space:nowrap}
+.soft-text{font-size:0.9rem;line-height:1.7;color:rgba(100,85,70,0.5);text-align:center;font-weight:400;white-space:nowrap}
+
+.ghost-btn{
+  font-family:'Lora','Georgia','Times New Roman',serif;font-size:0.9rem;color:rgba(60,50,40,0.55);
+  background:transparent;border:none;cursor:pointer;padding:0.75rem 0;margin-top:2.5rem;
+  opacity:0;transition:opacity 0.5s ease;letter-spacing:0.01em;border-bottom:1px solid rgba(120,100,80,0.12);white-space:nowrap
+}
+.ghost-btn:hover{opacity:0.7 !important}
+.ghost-btn:focus-visible{outline:1px solid rgba(120,100,80,0.3);outline-offset:4px}
+.ghost-btn.show{opacity:0.45}
+
+#writing-area{
+  font-family:'Lora','Georgia','Times New Roman',serif;font-size:1.1rem;line-height:1.9;
+  color:rgba(50,40,30,0.8);background:transparent;border:none;
+  border-bottom:1px solid rgba(120,100,80,0.1);width:100%;max-width:520px;
+  resize:none;overflow:hidden;padding:1rem 0;min-height:120px;caret-color:rgba(100,85,70,0.5)
+}
+#writing-area:focus{outline:none}
+
+.choice-card{
+  padding:1.5rem 2rem;margin:0.75rem 0;border:1px solid rgba(120,100,80,0.12);border-radius:6px;
+  background:rgba(255,252,245,0.6);cursor:pointer;max-width:420px;width:100%;text-align:left;
+  opacity:0;transition:opacity 1.2s ease,background-color 0.4s ease
+}
+.choice-card.show{opacity:1}
+.choice-card:hover{background:rgba(255,250,238,0.9)}
+.choice-title{font-size:1rem;color:rgba(60,50,40,0.75);margin-bottom:0.35rem;font-weight:600;white-space:nowrap}
+.choice-desc{font-size:0.85rem;color:rgba(100,85,70,0.45);line-height:1.6;white-space:nowrap}
+
+.shared-quote{margin:2.5rem 0;padding:1.5rem 2rem;border-left:2px solid rgba(120,100,80,0.12);opacity:0;transition:opacity 2s ease}
+.shared-quote.show{opacity:0.75}
+.shared-quote p{font-size:1.05rem;line-height:1.7;color:rgba(60,50,40,0.8);font-style:italic;white-space:nowrap}
+
+.link-box{margin:2rem 0;padding:1rem 1.5rem;border-radius:4px;background:rgba(120,100,80,0.04);border:1px solid rgba(120,100,80,0.1);cursor:pointer;user-select:all;opacity:0;transition:opacity 1.4s ease}
+.link-box.show{opacity:0.7}
+.link-box p{font-size:0.9rem;color:rgba(60,50,40,0.65);letter-spacing:0.02em;white-space:nowrap}
+
+.divider-line{width:1px;height:0;background:rgba(120,100,80,0.15);transition:height 2s ease;margin:2rem 0}
+.divider-line.grown{height:48px}
+
+.dissolve-dot{width:6px;height:6px;border-radius:50%;background:rgba(120,100,80,0.25);opacity:0.4;transition:opacity 2.5s ease,transform 2.5s ease;margin-bottom:3rem}
+.dissolve-dot.gone{opacity:0;transform:scale(0.1)}
+
+.fade{opacity:0;transition:opacity 1.6s ease}
+.writing-wrap,.share-wrap{max-width:640px;margin:0 auto;width:100%;display:flex;flex-direction:column;align-items:center}
+.share-wrap{max-width:540px}
+</style>
+</head>
+<body>
+
+<div id="arrival" class="scene">
+  <p class="body-text fade" id="a1">You're carrying something.</p>
+  <p class="body-text fade" id="a2" style="margin-top:0.25rem">You don't have to explain it.</p>
+  <button class="ghost-btn" id="a3" onclick="goTo('writing')">set something down</button>
+</div>
+
+<div id="writing" class="scene">
+  <div class="writing-wrap">
+    <p class="soft-text" style="margin-bottom:2rem">Write whatever is there. No one will read this unless you choose it.</p>
+    <textarea id="writing-area" rows="1" spellcheck="false" autocorrect="off" autocapitalize="off"></textarea>
+    <p class="soft-text" style="font-size:0.85rem;margin-top:2.5rem;opacity:0.35">Misspellings, fragments, unfinished thoughts — all welcome here.</p>
+    <button class="ghost-btn" id="done-btn" style="margin-top:3rem" onclick="goTo('pause')">i've said enough</button>
+  </div>
+</div>
+
+<div id="pause" class="scene">
+  <p class="body-text fade" id="p1">Thank you for trusting this space with that.</p>
+  <div class="divider-line" id="p-line"></div>
+  <p class="body-text fade" id="p2" style="font-size:0.95rem">Now, what would you like to do with it?</p>
+  <button class="ghost-btn" id="p3" style="margin-top:2rem" onclick="goTo('choices')">show me</button>
+</div>
+
+<div id="choices" class="scene">
+  <div class="choice-card" id="c1" tabindex="0" role="button" onclick="goTo('let-go')">
+    <p class="choice-title">Let it go</p>
+    <p class="choice-desc">It will disappear. Nothing is saved.</p>
+  </div>
+  <div class="choice-card" id="c2" tabindex="0" role="button" onclick="goTo('share')">
+    <p class="choice-title">Let someone else carry it for a moment</p>
+    <p class="choice-desc">Anonymous. No replies, no names. Just one quiet exchange.</p>
+  </div>
+  <div class="choice-card" id="c3" tabindex="0" role="button" onclick="goTo('save')">
+    <p class="choice-title">Save it for later</p>
+    <p class="choice-desc">A private link. No account, no reminders.</p>
+  </div>
+</div>
+
+<div id="let-go" class="scene">
+  <div class="dissolve-dot" id="lg-dot"></div>
+  <p class="body-text fade" id="lg1">It's gone.</p>
+  <p class="body-text fade" id="lg2" style="font-size:0.9rem;margin-top:0.5rem">You don't have to carry everything.</p>
+  <button class="ghost-btn" id="lg3" style="margin-top:3rem" onclick="goTo('exit')">leave quietly</button>
+</div>
+
+<div id="share" class="scene">
+  <div class="share-wrap">
+    <p class="body-text fade" id="s1" style="font-size:0.9rem">Yours has been set down anonymously.</p>
+    <p class="body-text fade" id="s2" style="font-size:0.85rem;margin-top:0.25rem">Here is something someone else set down.</p>
+    <div class="shared-quote" id="s-quote"><p id="s-quote-text"></p></div>
+    <p class="body-text fade" id="s3" style="font-size:0.85rem">You're not the only one.</p>
+    <button class="ghost-btn" id="s4" style="margin-top:2.5rem" onclick="goTo('exit')">leave quietly</button>
+  </div>
+</div>
+
+<div id="save" class="scene">
+  <p class="body-text fade" id="sv1">Here's your private link.</p>
+  <div class="link-box" id="sv-link" onclick="copyLink()"><p id="sv-link-text"></p></div>
+  <p class="soft-text fade" id="sv-hint" style="font-size:0.8rem">tap to copy</p>
+  <p class="body-text fade" id="sv2" style="font-size:0.85rem;margin-top:2rem">No account. No reminders. Come back if you want to.</p>
+  <p class="body-text fade" id="sv3" style="font-size:0.85rem;margin-top:0.25rem">It's okay if you never do.</p>
+  <button class="ghost-btn" id="sv4" style="margin-top:2.5rem" onclick="goTo('exit')">leave quietly</button>
+</div>
+
+<div id="exit" class="scene">
+  <p class="body-text fade" id="e1">This space is here if you need it again.</p>
+</div>
+
+<script>
+const thoughts=[
+  "I keep replaying a conversation that ended badly.",
+  "I miss someone I can't talk to anymore.",
+  "I don't know why I'm so tired.",
+  "I said yes when I meant no.",
+  "I'm carrying something I haven't told anyone.",
+  "I keep waiting for a feeling that hasn't come.",
+  "I forgot to be kind to myself today.",
+  "I'm afraid of the quiet.",
+  "I held it together, but just barely.",
+  "There's a version of me I can't get back to.",
+  "I didn't call, and now it's too late.",
+  "I keep starting over in my head.",
+  "Some days I just want to be still.",
+  "I don't know what I need right now.",
+  "I'm okay, but not in the way people think."
+];
+
+let cur = null, savedLink = "";
+
+function genLink() {
+  const c = "abcdefghjkmnpqrstuvwxyz23456789";
+  let id = "";
+  for (let i = 0; i < 16; i++) id += c[Math.floor(Math.random() * c.length)];
+  return "setdown.space/" + id.slice(0,4) + "-" + id.slice(4,8) + "-" + id.slice(8,12) + "-" + id.slice(12);
+}
+
+function reveal(id, op) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  if (e.classList.contains("fade"))        { e.style.opacity = op || "0.8"; }
+  else if (e.classList.contains("ghost-btn"))    { e.classList.add("show"); }
+  else if (e.classList.contains("choice-card"))  { e.classList.add("show"); }
+  else if (e.classList.contains("shared-quote")) { e.classList.add("show"); }
+  else if (e.classList.contains("link-box"))     { e.classList.add("show"); }
+  else if (e.classList.contains("divider-line")) { e.classList.add("grown"); }
+  else if (e.classList.contains("dissolve-dot")) { e.classList.add("gone"); }
+}
+
+function goTo(name) {
+  if (cur) {
+    const old = document.getElementById(cur);
+    old.style.opacity = "0";
+    old.style.pointerEvents = "none";
+    setTimeout(() => { old.classList.remove("active"); old.style.opacity = ""; old.style.pointerEvents = ""; }, 800);
+  }
+  setTimeout(() => {
+    cur = name;
+    document.getElementById(name).classList.add("active");
+    init(name);
+  }, cur ? 800 : 0);
+}
+
+function init(n) {
+  if (n === "arrival") {
+    setTimeout(() => reveal("a1", "0.8"), 400);
+    setTimeout(() => reveal("a2", "0.6"), 800);
+    setTimeout(() => reveal("a3"), 1200);
+  }
+  else if (n === "writing") {
+    setTimeout(() => document.getElementById("writing-area").focus(), 600);
+  }
+  else if (n === "pause") {
+    setTimeout(() => reveal("p1", "0.8"), 1200);
+    setTimeout(() => { reveal("p-line"); reveal("p2", "0.6"); }, 3200);
+    setTimeout(() => reveal("p3"), 5400);
+  }
+  else if (n === "choices") {
+    setTimeout(() => reveal("c1"), 800);
+    setTimeout(() => reveal("c2"), 1600);
+    setTimeout(() => reveal("c3"), 2400);
+  }
+  else if (n === "let-go") {
+    setTimeout(() => reveal("lg-dot"), 600);
+    setTimeout(() => reveal("lg1", "0.7"), 2800);
+    setTimeout(() => { reveal("lg2", "0.45"); reveal("lg3"); }, 5000);
+  }
+  else if (n === "share") {
+    document.getElementById("s-quote-text").textContent = thoughts[Math.floor(Math.random() * thoughts.length)];
+    setTimeout(() => { reveal("s1", "0.65"); reveal("s2", "0.4"); }, 800);
+    setTimeout(() => reveal("s-quote"), 3000);
+    setTimeout(() => { reveal("s3", "0.4"); reveal("s4"); }, 5500);
+  }
+  else if (n === "save") {
+    savedLink = genLink();
+    document.getElementById("sv-link-text").textContent = savedLink;
+    setTimeout(() => { reveal("sv1", "0.65"); reveal("sv-link"); reveal("sv-hint", "0.3"); }, 600);
+    setTimeout(() => reveal("sv2", "0.45"), 2600);
+    setTimeout(() => { reveal("sv3", "0.35"); reveal("sv4"); }, 4200);
+  }
+  else if (n === "exit") {
+    setTimeout(() => reveal("e1", "0.5"), 600);
+  }
+}
+
+document.getElementById("writing-area").addEventListener("input", function() {
+  this.style.height = "auto";
+  this.style.height = this.scrollHeight + "px";
+  const btn = document.getElementById("done-btn");
+  if (this.value.trim().length > 0) btn.classList.add("show");
+  else btn.classList.remove("show");
+});
+
+async function copyLink() {
+  try {
+    await navigator.clipboard.writeText("https://" + savedLink);
+    const h = document.getElementById("sv-hint");
+    h.textContent = "copied";
+    h.style.opacity = "0.6";
+    setTimeout(() => { h.textContent = "tap to copy"; h.style.opacity = "0.3"; }, 2000);
+  } catch(e) {}
+}
+
+goTo("arrival");
+</script>
+</body>
+</html>

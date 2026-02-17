@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thoughts, For Now</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh;background:#FAF7F0;font-family:'Lora','Georgia','Times New Roman',serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:rgba(120,100,80,0.1)}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:rgba(120,100,80,0.1);border-radius:2px}
+
+@media (max-width: 640px) {
+  .scene { padding: 1.5rem 1.25rem; }
+
+  .body-text { font-size: 1.05rem; white-space: normal; }
+  .soft-text  { font-size: 0.92rem; white-space: normal; }
+  .intro-text { font-size: 0.9rem; }
+
+  #writing-area {
+    font-size: 1.05rem;
+    padding: 1.25rem 0;
+    max-width: 100%;
+  }
+
+  /* larger tap targets for ghost buttons */
+  .ghost-btn {
+    font-size: 0.95rem;
+    padding: 1rem 0.5rem;
+    margin-top: 2rem;
+    min-height: 44px;
+  }
+
+  .exit-link {
+    font-size: 0.88rem;
+    padding: 0.85rem 0.5rem;
+    min-height: 44px;
+  }
+
+  /* choice options need comfortable tap zones */
+  .choice-option {
+    padding: 1.75rem 0;
+  }
+
+  .choice-title { font-size: 1rem; }
+  .choice-desc  { font-size: 0.85rem; white-space: normal; }
+
+  .shared-quote { padding: 1.25rem 1.25rem; }
+  .shared-quote p { font-size: 1rem; white-space: normal; }
+
+  .link-box p { font-size: 0.88rem; white-space: normal; word-break: break-all; }
+}
+
+@media (max-width: 380px) {
+  .body-text { font-size: 1rem; }
+  .ghost-btn  { font-size: 0.9rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after{transition-duration:0.1s !important;animation-duration:0.1s !important}
+  .divider-line.grown{height:48px}
+  .dissolve-dot.gone{opacity:0;transform:none}
+}
+
+.scene{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:2rem;opacity:0;transition:opacity 0.8s ease;position:absolute;top:0;left:0;right:0;pointer-events:none
+}
+.scene.active{opacity:1;pointer-events:all;position:relative}
+
+.body-text{font-size:1.05rem;line-height:1.8;color:rgba(60,50,40,0.75);text-align:center;font-weight:400;white-space:nowrap}
+.soft-text{font-size:0.9rem;line-height:1.7;color:rgba(100,85,70,0.5);text-align:center;font-weight:400;white-space:nowrap}
+
+.intro-text{font-size:0.88rem;line-height:2;color:rgba(100,85,70,0.45);text-align:center;font-weight:400;max-width:400px}
+
+.ghost-btn{
+  font-family:'Lora','Georgia','Times New Roman',serif;font-size:0.9rem;color:rgba(60,50,40,0.55);
+  background:transparent;border:none;cursor:pointer;padding:0.75rem 0;margin-top:2.5rem;
+  opacity:0;transition:opacity 0.5s ease;letter-spacing:0.01em;border-bottom:1px solid rgba(120,100,80,0.12);white-space:nowrap
+}
+.ghost-btn:hover{opacity:0.7 !important}
+.ghost-btn:focus-visible{outline:1px solid rgba(120,100,80,0.3);outline-offset:4px}
+.ghost-btn.show{opacity:0.45}
+
+.exit-link{
+  font-family:'Lora','Georgia','Times New Roman',serif;font-size:0.82rem;color:rgba(100,85,70,0.3);
+  background:transparent;border:none;cursor:pointer;padding:0.5rem 0;margin-top:3rem;
+  opacity:0;transition:opacity 0.5s ease;letter-spacing:0.01em;white-space:nowrap
+}
+.exit-link:hover{opacity:0.5 !important}
+.exit-link.show{opacity:0.3}
+
+.writing-wrap{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;max-width:640px;margin:0 auto
+}
+
+#writing-area{
+  font-family:'Lora','Georgia','Times New Roman',serif;font-size:1.1rem;line-height:1.9;
+  color:rgba(50,40,30,0.8);background:transparent;border:none;
+  border-bottom:1px solid rgba(120,100,80,0.1);width:100%;max-width:520px;
+  resize:none;overflow:hidden;padding:1rem 0;min-height:60px;max-height:50vh;
+  caret-color:rgba(100,85,70,0.5)
+}
+#writing-area:focus{outline:none}
+
+.choice-area{
+  display:flex;flex-direction:column;align-items:center;margin-top:2rem
+}
+
+.choice-option{
+  text-align:center;cursor:pointer;padding:1.5rem 0;
+  opacity:0.06;transition:opacity 1.2s ease;
+  position:relative;pointer-events:none
+}
+.choice-option.show{opacity:1}
+.choice-option.ready{pointer-events:all}
+.choice-option:hover .choice-title{opacity:1}
+.choice-option:hover .choice-desc{opacity:0.6}
+.choice-option:focus-visible{outline:1px solid rgba(120,100,80,0.2);outline-offset:8px}
+
+.choice-separator{
+  width:32px;height:1px;background:rgba(120,100,80,0.1);margin:0.25rem 0;
+  opacity:0.06;transition:opacity 1.2s ease
+}
+.choice-separator.show{opacity:1}
+
+.choice-title{
+  font-family:'Lora','Georgia','Times New Roman',serif;
+  font-size:1rem;color:rgba(60,50,40,0.7);font-weight:400;white-space:nowrap;
+  transition:opacity 0.4s ease;margin-bottom:0.3rem
+}
+
+.choice-desc{
+  font-family:'Lora','Georgia','Times New Roman',serif;
+  font-size:0.82rem;color:rgba(100,85,70,0.35);line-height:1.6;white-space:nowrap;font-weight:400;
+  transition:opacity 0.4s ease
+}
+
+.shared-quote{margin:2.5rem 0;padding:1.5rem 2rem;border-left:2px solid rgba(120,100,80,0.12);opacity:0;transition:opacity 2s ease}
+.shared-quote.show{opacity:0.75}
+.shared-quote p{font-size:1.05rem;line-height:1.7;color:rgba(60,50,40,0.8);font-style:italic;white-space:nowrap}
+
+.link-box{margin:2rem 0;padding:1rem 1.5rem;border-radius:4px;background:rgba(120,100,80,0.04);border:1px solid rgba(120,100,80,0.1);cursor:pointer;user-select:all;opacity:0;transition:opacity 1.4s ease}
+.link-box.show{opacity:0.7}
+.link-box p{font-size:0.9rem;color:rgba(60,50,40,0.65);letter-spacing:0.02em;white-space:nowrap}
+
+.divider-line{width:1px;height:0;background:rgba(120,100,80,0.15);transition:height 2s ease;margin:2rem 0}
+.divider-line.grown{height:48px}
+
+.dissolve-dot{width:6px;height:6px;border-radius:50%;background:rgba(120,100,80,0.25);opacity:0.4;transition:opacity 2.5s ease,transform 2.5s ease;margin-bottom:3rem}
+.dissolve-dot.gone{opacity:0;transform:scale(0.1)}
+
+.fade{opacity:0;transition:opacity 1.6s ease}
+.share-wrap{max-width:540px;margin:0 auto;width:100%;display:flex;flex-direction:column;align-items:center}
+
+.sr-wait{opacity:0;pointer-events:none;transition:opacity 0.5s ease}
+.sr-wait.show{opacity:0.45;pointer-events:all}
+</style>
+</head>
+<body>
+
+<div id="arrival" class="scene">
+  <div class="fade" id="a-intro">
+    <p class="intro-text">This is a place to put a thought down. Nothing here is kept unless you ask.</p>
+  </div>
+  <div class="fade" id="a-permission">
+    <p class="intro-text" style="font-size:0.82rem;margin-top:1.25rem">It doesn't have to make sense. It doesn't have to be finished.</p>
+  </div>
+  <button class="ghost-btn" id="a3" onclick="goTo('writing')">set something down</button>
+</div>
+
+<div id="writing" class="scene">
+  <div class="writing-wrap">
+    <p class="soft-text" id="writing-prompt" style="margin-bottom:2rem">This is for you.</p>
+    <textarea id="writing-area" rows="1" spellcheck="false" autocorrect="off" autocapitalize="off" aria-label="Write your thought here"></textarea>
+    <button class="ghost-btn" id="done-btn" style="margin-top:3rem" onclick="advanceFromWriting()">i've said enough</button>
+    <button class="exit-link" id="no-words-btn" onclick="goTo('exit-empty')">i don't have the words right now</button>
+  </div>
+</div>
+
+<div id="choices" class="scene">
+  <p class="body-text fade" id="ch-thanks" style="font-size:0.88rem">It's been set down.</p>
+  <div class="divider-line" id="ch-line"></div>
+  <p class="body-text fade" id="ch-question" style="font-size:0.95rem">What would you like to do with it?</p>
+  <div class="choice-area">
+    <div class="choice-option" id="c1" tabindex="0" role="button" onclick="goTo('let-go')" onkeydown="if(event.key==='Enter')goTo('let-go')">
+      <p class="choice-title">Let it go</p>
+      <p class="choice-desc">It will disappear. Nothing is saved.</p>
+    </div>
+    <div class="choice-separator" id="c-sep1"></div>
+    <div class="choice-option" id="c2" tabindex="0" role="button" onclick="goTo('share-confirm')" onkeydown="if(event.key==='Enter')goTo('share-confirm')">
+      <p class="choice-title">Let a stranger briefly witness it</p>
+      <p class="choice-desc">Anonymous. No replies, no names. You'll receive one in return.</p>
+    </div>
+    <div class="choice-separator" id="c-sep2"></div>
+    <div class="choice-option" id="c3" tabindex="0" role="button" onclick="goToSave()" onkeydown="if(event.key==='Enter')goToSave()">
+      <p class="choice-title">Save it for later</p>
+      <p class="choice-desc">A private link. No account, no reminders.</p>
+    </div>
+  </div>
+</div>
+
+<div id="let-go" class="scene">
+  <div class="dissolve-dot" id="lg-dot"></div>
+  <p class="body-text fade" id="lg1">It's gone.</p>
+  <p class="body-text fade" id="lg2" style="font-size:0.9rem;margin-top:0.5rem">You don't have to carry everything.</p>
+  <button class="ghost-btn" id="lg3" style="margin-top:3rem" onclick="goTo('exit')">close this</button>
+</div>
+
+<div id="share-confirm" class="scene">
+  <p class="body-text fade" id="sc1" style="font-size:0.92rem">Your thought will pass anonymously to a stranger.</p>
+  <p class="body-text fade" id="sc2" style="font-size:0.85rem;margin-top:0.25rem">You'll receive one of theirs. Neither of you will know the other.</p>
+  <button class="ghost-btn" id="sc-yes" style="margin-top:2.5rem" onclick="goTo('share')">yes</button>
+  <button class="exit-link" id="sc-back" style="margin-top:1.5rem" onclick="goTo('choices')">go back</button>
+</div>
+
+<div id="share" class="scene">
+  <div class="share-wrap">
+    <p class="body-text fade" id="s1" style="font-size:0.9rem">Yours is gone.</p>
+    <p class="body-text fade" id="s2" style="font-size:0.85rem;margin-top:0.25rem">Someone else set this down. It asks nothing of you.</p>
+    <div class="shared-quote" id="s-quote"><p id="s-quote-text"></p></div>
+    <button class="ghost-btn" id="s4" style="margin-top:2.5rem" onclick="goTo('exit')">go</button>
+  </div>
+</div>
+
+<div id="save" class="scene">
+  <p class="body-text fade" id="sv1">Here's your private link.</p>
+  <div class="link-box" id="sv-link" onclick="copyLink()"><p id="sv-link-text"></p></div>
+  <p class="soft-text fade" id="sv-hint" style="font-size:0.8rem">tap to copy</p>
+  <p class="body-text fade" id="sv2" style="font-size:0.85rem;margin-top:2rem">No account. No reminders. Come back if you want to.</p>
+  <p class="body-text fade" id="sv3" style="font-size:0.85rem;margin-top:0.25rem">It's okay if you never do.</p>
+  <button class="ghost-btn" id="sv4" style="margin-top:2.5rem" onclick="goTo('exit')">that's all</button>
+</div>
+
+<div id="exit" class="scene">
+  <p class="body-text fade" id="e1">This space is here if you need it again.</p>
+  <button class="ghost-btn sr-wait" id="e-again" style="margin-top:3rem" aria-label="Start over and set down another thought" onclick="restart()">again</button>
+</div>
+
+<div id="exit-empty" class="scene">
+  <p class="body-text fade" id="ee1">That's okay. Sometimes there aren't any.</p>
+  <button class="ghost-btn sr-wait" id="ee-again" style="margin-top:3rem" aria-label="Start over" onclick="restart()">again</button>
+</div>
+
+<div id="retrieve" class="scene">
+  <div class="writing-wrap">
+    <p class="soft-text fade" id="rv1" style="margin-bottom:2rem">You saved this.</p>
+    <p class="body-text fade" id="rv-content" style="font-size:1.05rem;line-height:1.9;text-align:left;white-space:pre-wrap;max-width:520px"></p>
+    <p class="soft-text fade" id="rv2" style="font-size:0.82rem;margin-top:2.5rem;opacity:0.35">It's still here. It waited.</p>
+    <button class="ghost-btn" id="rv3" style="margin-top:3rem" onclick="goTo('exit')">that's all</button>
+  </div>
+</div>
+
+<div id="retrieve-error" class="scene">
+  <p class="body-text fade" id="re1">That thought couldn't be found.</p>
+  <p class="soft-text fade" id="re2" style="font-size:0.85rem;margin-top:0.5rem">The link may have expired or been mistyped.</p>
+  <button class="ghost-btn" id="re3" style="margin-top:3rem" onclick="goTo('arrival')">start fresh</button>
+</div>
+
+<script>
+const SUPABASE_URL = "https://zyoigztzsxiioicccstd.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5b2lnenR6c3hpaW9pY2Njc3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTIxMTUsImV4cCI6MjA4NjkyODExNX0.l5Pq5iUkEu__3C7Nj6XLcmWSJMt5THfAzgyjVmOM4uw";
+
+const thoughts=[
+  "i keep almost texting them and then not",
+  "im so tired of pretending that didn't hurt",
+  "I don't even know what I need I just know this isnt it",
+  "said im fine again. im not fine",
+  "i keep thinking about what i should have said",
+  "everything is fine on paper so why does it feel like this",
+  "i cant stop replaying it",
+  "i miss who i was before all of this",
+  "just need someone to sit with me and not say anything",
+  "i don't want advice i just want someone to know",
+  "its 3am and i cant turn my brain off",
+  "i keep starting sentences and deleting them",
+  "i dont know how to ask for help without feeling like a burden",
+  "i held it together all day and now i cant",
+  "something is off and i cant name it",
+  "i keep saying yes to things i dont want",
+  "i forgot what it feels like to not be tired",
+  "everyone moved on and im still here",
+  "i just want one day where i dont have to perform",
+  "the quiet is louder than everything else right now",
+  "i snapped at someone who didn't deserve it",
+  "i don't feel anything and that scares me",
+  "got good news today and i still feel empty",
+  "i keep waiting for permission to rest",
+  "i cant tell if im angry or just sad",
+  "none of this is big enough to complain about but its all so heavy",
+  "i think i've been apologizing for existing",
+  "i dont miss them i miss who i thought they were",
+  "i keep doing the right thing and it keeps feeling wrong",
+  "i just need like five minutes where nobody needs anything from me"
+];
+
+let cur = null, savedLink = "";
+let typingTimer = null;
+let stillnessTimer = null;
+
+// ── Supabase helpers ──────────────────────────────────────────
+
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+async function saveThought(id, content) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/thoughts`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({ id, content })
+  });
+  if (!res.ok) throw new Error('Save failed');
+}
+
+async function fetchThought(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/thoughts?id=eq.${encodeURIComponent(id)}&select=content`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }
+  });
+  if (!res.ok) throw new Error('Fetch failed');
+  const data = await res.json();
+  if (!data.length) throw new Error('Not found');
+  return data[0].content;
+}
+
+// ── Core UI helpers ───────────────────────────────────────────
+
+function reveal(id, op) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  if (e.classList.contains("fade"))             { e.style.opacity = op || "0.8"; }
+  else if (e.classList.contains("ghost-btn"))   { e.classList.add("show"); }
+  else if (e.classList.contains("sr-wait"))     { e.classList.add("show"); }
+  else if (e.classList.contains("exit-link"))   { e.classList.add("show"); }
+  else if (e.classList.contains("choice-option"))   { e.classList.add("show"); }
+  else if (e.classList.contains("choice-separator")){ e.classList.add("show"); }
+  else if (e.classList.contains("shared-quote"))    { e.classList.add("show"); }
+  else if (e.classList.contains("link-box"))        { e.classList.add("show"); }
+  else if (e.classList.contains("divider-line"))    { e.classList.add("grown"); }
+  else if (e.classList.contains("dissolve-dot"))    { e.classList.add("gone"); }
+}
+
+function resetElement(id) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.style.opacity = "";
+  e.classList.remove("show","grown","gone");
+}
+
+const transitionDuration = {
+  arrival:         600,
+  writing:         600,
+  choices:         1200,
+  'let-go':        1400,
+  share:           800,
+  'share-confirm': 800,
+  save:            700,
+  exit:            1000,
+  'exit-empty':    1000,
+  retrieve:        800,
+  'retrieve-error':800
+};
+
+function goTo(name) {
+  if (stillnessTimer) { clearTimeout(stillnessTimer); stillnessTimer = null; }
+  if (typingTimer)    { clearTimeout(typingTimer);    typingTimer = null; }
+
+  const dur = transitionDuration[name] ?? 800;
+
+  if (cur) {
+    const old = document.getElementById(cur);
+    old.style.transition = `opacity ${dur}ms ease`;
+    old.style.opacity = "0";
+    old.style.pointerEvents = "none";
+    setTimeout(() => {
+      old.classList.remove("active");
+      old.style.opacity = "";
+      old.style.pointerEvents = "";
+      old.style.transition = "";
+    }, dur);
+  }
+  setTimeout(() => {
+    cur = name;
+    document.getElementById(name).classList.add("active");
+    init(name);
+  }, cur ? dur : 0);
+}
+
+function advanceFromWriting() {
+  if (document.getElementById("writing-area").value.trim().length > 0) {
+    goTo("choices");
+  }
+}
+
+function restart() {
+  const ids = ["a-intro","a-permission","a3",
+               "ch-thanks","ch-line","ch-question","c1","c-sep1","c2","c-sep2","c3",
+               "lg-dot","lg1","lg2","lg3",
+               "sc1","sc2","sc-yes","sc-back",
+               "s1","s2","s-quote","s4",
+               "sv1","sv-link","sv-hint","sv2","sv3","sv4",
+               "e1","e-again","ee1","ee-again",
+               "rv1","rv-content","rv2","rv3",
+               "re1","re2","re3",
+               "done-btn","no-words-btn"];
+  ids.forEach(resetElement);
+  document.querySelectorAll('.choice-option').forEach(el => el.classList.remove('ready'));
+
+  const ta = document.getElementById("writing-area");
+  ta.value = "";
+  ta.style.height = "";
+
+  const dot = document.getElementById("lg-dot");
+  if (dot) { dot.classList.remove("gone"); dot.style.opacity = ""; }
+
+  const line = document.getElementById("ch-line");
+  if (line) { line.classList.remove("grown"); line.style.height = ""; }
+
+  goTo("arrival");
+}
+
+function init(n) {
+  if (n === "arrival") {
+    setTimeout(() => reveal("a-intro", "0.8"), 400);
+    setTimeout(() => reveal("a-permission", "0.55"), 1400);
+    setTimeout(() => reveal("a3"), 2800);
+  }
+  else if (n === "writing") {
+    setTimeout(() => document.getElementById("writing-area").focus(), 600);
+    setTimeout(() => reveal("no-words-btn"), 5000);
+  }
+  else if (n === "choices") {
+    document.querySelectorAll('.choice-option').forEach(el => el.classList.add('ready'));
+    setTimeout(() => reveal("ch-thanks", "0.8"), 1200);
+    setTimeout(() => { reveal("ch-line"); reveal("ch-question", "0.6"); }, 3200);
+    setTimeout(() => reveal("c1"), 5200);
+    setTimeout(() => reveal("c-sep1"), 5600);
+    setTimeout(() => reveal("c2"), 6000);
+    setTimeout(() => reveal("c-sep2"), 6400);
+    setTimeout(() => reveal("c3"), 6800);
+  }
+  else if (n === "let-go") {
+    setTimeout(() => reveal("lg-dot"), 600);
+    setTimeout(() => reveal("lg1", "0.7"), 2800);
+    setTimeout(() => { reveal("lg2", "0.45"); reveal("lg3"); }, 5000);
+  }
+  else if (n === "share-confirm") {
+    setTimeout(() => reveal("sc1", "0.7"), 600);
+    setTimeout(() => reveal("sc2", "0.45"), 1200);
+    setTimeout(() => reveal("sc-yes"), 2200);
+    setTimeout(() => reveal("sc-back"), 2800);
+  }
+  else if (n === "share") {
+    document.getElementById("s-quote-text").textContent = thoughts[Math.floor(Math.random() * thoughts.length)];
+    setTimeout(() => reveal("s1", "0.65"), 800);
+    setTimeout(() => reveal("s2", "0.4"), 1600);
+    setTimeout(() => reveal("s-quote"), 3500);
+    setTimeout(() => reveal("s4"), 6000);
+  }
+  else if (n === "save") {
+    // save is handled by goToSave() async — init just handles timing after link is set
+    setTimeout(() => { reveal("sv1", "0.65"); reveal("sv-link"); reveal("sv-hint", "0.3"); }, 600);
+    setTimeout(() => reveal("sv2", "0.45"), 2600);
+    setTimeout(() => { reveal("sv3", "0.35"); reveal("sv4"); }, 4200);
+  }
+  else if (n === "exit") {
+    setTimeout(() => reveal("e1", "0.5"), 600);
+    setTimeout(() => reveal("e-again"), 8000);
+  }
+  else if (n === "exit-empty") {
+    setTimeout(() => reveal("ee1", "0.5"), 600);
+    setTimeout(() => reveal("ee-again"), 8000);
+  }
+  else if (n === "retrieve") {
+    setTimeout(() => reveal("rv1", "0.45"), 600);
+    setTimeout(() => reveal("rv-content", "0.8"), 1400);
+    setTimeout(() => reveal("rv2", "0.35"), 3000);
+    setTimeout(() => reveal("rv3"), 4200);
+  }
+  else if (n === "retrieve-error") {
+    setTimeout(() => reveal("re1", "0.6"), 600);
+    setTimeout(() => reveal("re2", "0.35"), 1400);
+    setTimeout(() => reveal("re3"), 2800);
+  }
+}
+
+// ── Save flow (async) ─────────────────────────────────────────
+
+async function goToSave() {
+  const content = document.getElementById("writing-area").value.trim();
+  if (!content) return;
+
+  const id = generateUUID();
+  const pageUrl = window.location.href.split('?')[0];
+  const fullLink = `${pageUrl}?id=${id}`;
+  savedLink = fullLink;
+
+  document.getElementById("sv-link-text").textContent = fullLink;
+
+  // transition to save scene immediately — don't make them wait for the network
+  goTo("save");
+
+  // save to Supabase in the background
+  try {
+    await saveThought(id, content);
+  } catch(e) {
+    // if save fails, update hint text quietly — the link won't work but the scene stays clean
+    const hint = document.getElementById("sv-hint");
+    if (hint) {
+      hint.textContent = "couldn't save — try again";
+      hint.style.opacity = "0.45";
+    }
+  }
+}
+
+// ── Copy link ─────────────────────────────────────────────────
+
+async function copyLink() {
+  try {
+    await navigator.clipboard.writeText(savedLink);
+    const h = document.getElementById("sv-hint");
+    h.textContent = "copied";
+    h.style.opacity = "0.6";
+    setTimeout(() => { h.textContent = "tap to copy"; h.style.opacity = "0.3"; }, 2000);
+  } catch(e) {}
+}
+
+// ── Textarea behaviour ────────────────────────────────────────
+
+const ta = document.getElementById("writing-area");
+
+ta.addEventListener("input", function() {
+  this.style.height = "auto";
+  this.style.height = Math.min(this.scrollHeight, window.innerHeight * 0.5) + "px";
+
+  const btn = document.getElementById("done-btn");
+  btn.classList.remove("show");
+
+  if (typingTimer)    clearTimeout(typingTimer);
+  if (stillnessTimer) clearTimeout(stillnessTimer);
+
+  if (this.value.trim().length > 0) {
+    typingTimer = setTimeout(() => {
+      btn.classList.add("show");
+    }, 2500);
+
+    stillnessTimer = setTimeout(() => {
+      advanceFromWriting();
+    }, 8000);
+  }
+});
+
+ta.addEventListener("keydown", function(e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    if (this.value.trim().length > 0) {
+      advanceFromWriting();
+    }
+  }
+});
+
+// ── Entry point — check for ?id= retrieval ────────────────────
+
+(async function() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  if (id) {
+    // someone followed a saved link — fetch and display their thought
+    try {
+      const content = await fetchThought(id);
+      document.getElementById("rv-content").textContent = content;
+      goTo("retrieve");
+    } catch(e) {
+      goTo("retrieve-error");
+    }
+  } else {
+    goTo("arrival");
+  }
+})();
+</script>
+</body>
+</html>

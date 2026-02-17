@@ -483,7 +483,6 @@ function init(n) {
     setTimeout(() => reveal("s4"), 6000);
   }
   else if (n === "save") {
-    // save is handled by goToSave() async — init just handles timing after link is set
     setTimeout(() => { reveal("sv1", "0.65"); reveal("sv-link"); reveal("sv-hint", "0.3"); }, 600);
     setTimeout(() => reveal("sv2", "0.45"), 2600);
     setTimeout(() => { reveal("sv3", "0.35"); reveal("sv4"); }, 4200);
@@ -516,20 +515,18 @@ async function goToSave() {
   if (!content) return;
 
   const id = generateUUID();
-  const pageUrl = window.location.href.split('?')[0];
-  const fullLink = `${pageUrl}?id=${id}`;
-  savedLink = fullLink;
+  // Base URL: update this once live on GitHub Pages
+  const base = window.location.hostname === 'localhost' || window.location.protocol === 'file:'
+    ? 'https://enochzhu.github.io/thoughts-for-now/experience.html'
+    : window.location.href.split('?')[0];
+  savedLink = `${base}?id=${id}`;
 
-  document.getElementById("sv-link-text").textContent = fullLink;
-
-  // transition to save scene immediately — don't make them wait for the network
+  // transition immediately, save in background
   goTo("save");
 
-  // save to Supabase in the background
   try {
     await saveThought(id, content);
   } catch(e) {
-    // if save fails, update hint text quietly — the link won't work but the scene stays clean
     const hint = document.getElementById("sv-hint");
     if (hint) {
       hint.textContent = "couldn't save — try again";

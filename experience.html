@@ -50,7 +50,7 @@ html,body{min-height:100vh;background:#FAF7F0;font-family:'Lora','Georgia','Time
   .shared-quote { padding: 1.25rem 1.25rem; }
   .shared-quote p { font-size: 1rem; white-space: normal; }
 
-  .link-box p { font-size: 0.88rem; white-space: normal; word-break: break-all; }
+  .link-box p { font-size: 0.88rem; }
 }
 
 @media (max-width: 380px) {
@@ -143,9 +143,18 @@ html,body{min-height:100vh;background:#FAF7F0;font-family:'Lora','Georgia','Time
 .shared-quote.show{opacity:0.75}
 .shared-quote p{font-size:1.05rem;line-height:1.7;color:rgba(60,50,40,0.8);font-style:italic;white-space:nowrap}
 
-.link-box{margin:2rem 0;padding:1rem 1.5rem;border-radius:4px;background:rgba(120,100,80,0.04);border:1px solid rgba(120,100,80,0.1);cursor:pointer;user-select:all;opacity:0;transition:opacity 1.4s ease}
+.link-box{
+  margin:2rem 0;padding:0.85rem 2rem;border-radius:2px;
+  background:transparent;border:1px solid rgba(120,100,80,0.15);
+  cursor:pointer;opacity:0;transition:opacity 1.4s ease;
+  text-align:center
+}
 .link-box.show{opacity:0.7}
-.link-box p{font-size:0.9rem;color:rgba(60,50,40,0.65);letter-spacing:0.02em;white-space:nowrap}
+.link-box:hover{opacity:1 !important;border-color:rgba(120,100,80,0.3)}
+.link-box p{
+  font-size:0.88rem;color:rgba(60,50,40,0.7);
+  letter-spacing:0.04em;font-style:italic;white-space:nowrap
+}
 
 .divider-line{width:1px;height:0;background:rgba(120,100,80,0.15);transition:height 2s ease;margin:2rem 0}
 .divider-line.grown{height:48px}
@@ -228,8 +237,10 @@ html,body{min-height:100vh;background:#FAF7F0;font-family:'Lora','Georgia','Time
 
 <div id="save" class="scene">
   <p class="body-text fade" id="sv1">Here's your private link.</p>
-  <div class="link-box" id="sv-link" onclick="copyLink()"><p id="sv-link-text"></p></div>
-  <p class="soft-text fade" id="sv-hint" style="font-size:0.8rem">tap to copy</p>
+  <div class="link-box" id="sv-link" onclick="copyLink()" role="button" aria-label="Copy your private link">
+    <p id="sv-link-text">your thought, saved privately</p>
+  </div>
+  <p class="soft-text fade" id="sv-hint" style="font-size:0.8rem">click to copy link</p>
   <p class="body-text fade" id="sv2" style="font-size:0.85rem;margin-top:2rem">No account. No reminders. Come back if you want to.</p>
   <p class="body-text fade" id="sv3" style="font-size:0.85rem;margin-top:0.25rem">It's okay if you never do.</p>
   <button class="ghost-btn" id="sv4" style="margin-top:2.5rem" onclick="goTo('exit')">that's all</button>
@@ -535,8 +546,11 @@ async function copyLink() {
     const h = document.getElementById("sv-hint");
     h.textContent = "copied";
     h.style.opacity = "0.6";
-    setTimeout(() => { h.textContent = "tap to copy"; h.style.opacity = "0.3"; }, 2000);
-  } catch(e) {}
+    setTimeout(() => { h.textContent = "click to copy link"; h.style.opacity = "0.3"; }, 2000);
+  } catch(e) {
+    // fallback: open the link directly if clipboard fails
+    window.open(savedLink, '_blank');
+  }
 }
 
 // ── Textarea behaviour ────────────────────────────────────────
